@@ -10,19 +10,21 @@ function makeYearPhotos(photos, selectedYear) {
     let createdYear, yearPhotos = [];
 
     photos.forEach((item) => {
-        createdYear = new Date(item.created_time).getFullYear();
+        item.likes_count = item.likes.summary.total_count;
+        item.img_url = item.images[0].source;
 
-        if (createdYear === selectedYear ) {
+        createdYear = new Date(item.created_time).getFullYear();
+        if (createdYear === selectedYear) {
             yearPhotos.push(item)
         }
     });
 
-    return yearPhotos.sort((a, b) => (b.likes && a.likes) ? b.likes.data.length - a.likes.data.length : -1);
+    return yearPhotos.sort((a, b) => b.likes_count - a.likes_count)
 }
 
 function loadPhotos(year, dispatch) {
     FB.api(
-        '/me/photos?fields=created_time,likes,images&type=uploaded&limit=50',
+        'me/photos?fields=created_time,likes.summary(1),images&limit=50&type=uploaded',
         function (response) {
             if (response) {
                 if (response.error) {
@@ -51,7 +53,7 @@ export function getPhotos(year) {
             });
 
             loadPhotos(year, dispatch);
-        } catch(e) {
+        } catch (e) {
             dispatch({
                 type: GET_PHOTOS_FAIL,
                 error: true,
